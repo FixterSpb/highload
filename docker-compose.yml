@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+    nginx:
+        #build: containers/local/phpdocker/nginx
+        image: nginx:alpine
+        container_name: highload-nginx
+        volumes:
+            - .:/app
+            - ./dev-tools/docker/local/nginx:/etc/nginx/conf.d
+        ports:
+            - "80:80"
+        command: nginx -g 'daemon off;'
+        networks:
+            highload-network:
+                ipv4_address: 192.168.111.10
+        depends_on:
+            - php
+
+    php:
+        container_name: highload-php
+        build: dev-tools/docker/local/php
+        volumes:
+            - .:/var/www/highload
+            - ./dev-tools/docker/local/php/php.ini:/etc/php/7.4/cli/php.ini
+        command: php-fpm7.4 -F
+        environment:
+            USER_ID: ${DOCKER_USER_ID}
+        ports:
+            - "9000:9000"
+        depends_on:
+            - postgres
+        networks:
+            highload-network:
+                ipv4_address: 192.168.111.20
+
+    postgres:
+        image: postgres:9.6
+        container_name: ${DOCKER_DB_HOST}
+        ports:
+            - ${DOCKER_DB_PORT}:5432
+        volumes:
+            - ./../databases/highload/database:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: ${DOCKER_DB_NAME}
+            POSTGRES_USER: ${DOCKER_DB_USER}
+            POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD}
+        command: postgres
+        networks:
+            highload-network:
+                ipv4_address: 192.168.111.30
+
+networks:
+    highload-network:
+        ipam:
+            config:
+                - subnet: 192.168.111.0/24
