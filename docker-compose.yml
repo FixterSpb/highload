@@ -28,6 +28,7 @@ services:
             USER_ID: ${DOCKER_USER_ID}
         ports:
             - "9000:9000"
+            - "443:443"
         depends_on:
             - postgres
         networks:
@@ -49,6 +50,31 @@ services:
         networks:
             highload-network:
                 ipv4_address: 192.168.111.30
+
+    maria-db-1:
+        image: mariadb
+        container_name: ${DOCKER_DB_1_HOST}
+        volumes:
+            - ./dumps:/dumps
+            - ./databases/maria-1:/var/lib/mysql
+        ports:
+            - "3301:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: 123
+        networks:
+            highload-network:
+                ipv4_address: 192.168.111.40
+
+    maria-db-2:
+        image: mariadb
+        container_name: ${DOCKER_DB_2_HOST}
+        ports:
+            - "3302:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: 123
+        networks:
+            highload-network:
+                ipv4_address: 192.168.111.50
 
 networks:
     highload-network:
