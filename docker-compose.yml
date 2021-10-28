@@ -24,47 +24,37 @@ services:
         environment:
             USER_ID: ${DOCKER_USER_ID}
         depends_on:
-            - postgres
+            - maria-db-master
+            - maria-db-slave
         networks:
             highload-network:
                 ipv4_address: 192.168.111.20
 
-    postgres:
-        image: postgres:9.6
-        container_name: ${DOCKER_DB_HOST}
-        ports:
-            - ${DOCKER_DB_PORT}:5432
-        volumes:
-            - ./../databases/highload/database:/var/lib/postgresql/data
-        environment:
-            POSTGRES_DB: ${DOCKER_DB_NAME}
-            POSTGRES_USER: ${DOCKER_DB_USER}
-            POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD}
-        command: postgres
-        networks:
-            highload-network:
-                ipv4_address: 192.168.111.30
-
-    maria-db-1:
+    maria-db-master:
         image: mariadb
-        container_name: ${DOCKER_DB_1_HOST}
+        container_name: ${DOCKER_DB_MASTER_HOST}
         volumes:
             - ./dumps:/dumps
-            - ./databases/maria-1:/var/lib/mysql
+            - ./databases/maria-master:/var/lib/mysql
+            - ./dev-tools/docker/local/mariadb-master/50-server.cnf:/etc/mysql/mariadb.conf.d/50-server.cnf
         environment:
             MYSQL_ROOT_PASSWORD: 123
         networks:
             highload-network:
-                ipv4_address: 192.168.111.40
+                ipv4_address: 192.168.111.31
 
-    maria-db-2:
+    maria-db-slave:
         image: mariadb
-        container_name: ${DOCKER_DB_2_HOST}
+        container_name: ${DOCKER_DB_SLAVE_HOST}
+        volumes:
+            - ./dumps:/dumps
+            - ./databases/maria-slave:/var/lib/mysql
+            - ./dev-tools/docker/local/mariadb-slave/50-server.cnf:/etc/mysql/mariadb.conf.d/50-server.cnf
         environment:
             MYSQL_ROOT_PASSWORD: 123
         networks:
             highload-network:
-                ipv4_address: 192.168.111.50
+                ipv4_address: 192.168.111.32
 
 networks:
     highload-network:
